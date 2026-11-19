@@ -1,4 +1,5 @@
 import api from './api'
+import { demoAuthService } from './demo-auth.service'
 
 export interface LoginPayload {
   email: string
@@ -16,7 +17,8 @@ export interface ForgotPasswordPayload {
 }
 
 export const authService = {
-  login: async (payload: LoginPayload) => {
+  login: async (payload: LoginPayload) => demoAuthService.login(payload.email, payload.password),
+  loginWithBackend: async (payload: LoginPayload) => {
     const response = await api.post('/api/v1/auth/login', payload)
     return response.data
   },

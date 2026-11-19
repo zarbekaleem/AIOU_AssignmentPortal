@@ -1,6 +1,7 @@
-import { Bell, ChevronRight, Menu, UserRound, Wallet } from 'lucide-react'
+import { Bell, ChevronRight, LogOut, Menu, Wallet } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { demoAuthService } from '@/services/demo-auth.service'
 
 const pageTitles: Record<string, string> = {
   '/app/dashboard': 'Dashboard',
@@ -16,10 +17,12 @@ const pageTitles: Record<string, string> = {
 
 interface StudentHeaderProps {
   onMenuClick: () => void
+  onLogout: () => void
 }
 
-export function StudentHeader({ onMenuClick }: StudentHeaderProps) {
+export function StudentHeader({ onMenuClick, onLogout }: StudentHeaderProps) {
   const { pathname } = useLocation()
+  const session = demoAuthService.getSession()
   const title = pageTitles[pathname] ?? (pathname.includes('/assignments/') ? 'Assignment Workspace' : 'Student Workspace')
 
   return (
@@ -45,10 +48,11 @@ export function StudentHeader({ onMenuClick }: StudentHeaderProps) {
           <Bell className="h-5 w-5" aria-hidden="true" />
         </button>
         <ThemeToggle />
-        <Link to="/#home" className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900" aria-label="Sign in or return to public site">
-          <UserRound className="h-4 w-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Account</span>
-        </Link>
+        <span className="hidden max-w-40 truncate text-xs font-medium text-slate-500 md:inline" title={session?.email}>{session?.email}</span>
+        <button type="button" onClick={onLogout} className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900" aria-label="Log out of demo account" title="Log out">
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">Log out</span>
+        </button>
       </div>
     </header>
   )

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { loginSchema, type LoginFormValues } from '@/lib/validations'
 import { authService } from '@/services/auth.service'
+import { DemoAuthError } from '@/services/demo-auth.service'
 import type { AuthTab } from '@/types'
 
 interface LoginFormProps {
@@ -13,6 +15,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onSwitchTab }: LoginFormProps) {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
@@ -30,8 +33,12 @@ export default function LoginForm({ onSwitchTab }: LoginFormProps) {
     setApiError(null)
     try {
       await authService.login(data)
-      // On success: redirect will be handled once backend is connected
+      navigate('/app/dashboard', { replace: true })
     } catch (error: unknown) {
+      if (error instanceof DemoAuthError) {
+        setApiError(error.message)
+        return
+      }
       const err = error as { response?: { data?: { message?: string } }; message?: string }
       if (!err.response) {
         setApiError('Authentication service is not connected yet. Please check back soon.')
@@ -47,7 +54,7 @@ export default function LoginForm({ onSwitchTab }: LoginFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {apiError && (
         <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-lg" role="alert">
-          <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
+          <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" aria-hidden="true" />
           <p className="text-sm text-amber-800">{apiError}</p>
         </div>
       )}

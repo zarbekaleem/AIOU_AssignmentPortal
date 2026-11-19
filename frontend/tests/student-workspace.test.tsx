@@ -3,9 +3,15 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import App from '../src/App'
+import { demoAuthConfig } from '../src/config/demo-auth'
+import { demoAuthService } from '../src/services/demo-auth.service'
 
 function renderAt(path: string) {
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
+}
+
+function startDemoSession() {
+  demoAuthService.login(demoAuthConfig.email, demoAuthConfig.password)
 }
 
 async function completeDetails(user: ReturnType<typeof userEvent.setup>) {
@@ -29,18 +35,53 @@ async function reachInstructions(user: ReturnType<typeof userEvent.setup>) {
 describe('student workspace routes', () => {
   beforeEach(() => {
     localStorage.clear()
+    demoAuthService.logout()
     document.documentElement.classList.remove('dark')
   })
 
-  it('redirects /app to the dashboard and shows unavailable account data honestly', async () => {
+  it('redirects a user without a demo session to the public login form', async () => {
     renderAt('/app')
 
+    expect(await screen.findByRole('heading', { name: 'Student Portal' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Welcome to your workspace' })).not.toBeInTheDocument()
+  })
+
+  it('accepts the configured demo credentials and opens the dashboard', async () => {
+    const user = userEvent.setup()
+    renderAt('/')
+
+    await user.type(screen.getByRole('textbox', { name: /Email Address/ }), demoAuthConfig.email)
+    await user.type(screen.getByPlaceholderText('Enter your password'), demoAuthConfig.password)
+    await user.click(screen.getByRole('button', { name: 'Sign In' }))
+
     expect(await screen.findByRole('heading', { name: 'Welcome to your workspace' })).toBeInTheDocument()
-    expect(await screen.findByText(/Student account services are not connected yet/)).toBeInTheDocument()
-    expect(screen.getAllByText('Unavailable').length).toBeGreaterThan(0)
+    expect(screen.getByText(/Student account services are not connected yet/)).toBeInTheDocument()
+  })
+
+  it('rejects invalid demo credentials without opening the dashboard', async () => {
+    const user = userEvent.setup()
+    renderAt('/')
+
+    await user.type(screen.getByRole('textbox', { name: /Email Address/ }), demoAuthConfig.email)
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'incorrect-password')
+    await user.click(screen.getByRole('button', { name: 'Sign In' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('The email or password is incorrect.')
+    expect(screen.queryByRole('heading', { name: 'Welcome to your workspace' })).not.toBeInTheDocument()
+  })
+
+  it('clears the demo session and returns to login on logout', async () => {
+    startDemoSession()
+    const user = userEvent.setup()
+    renderAt('/app/dashboard')
+
+    await user.click(screen.getByRole('button', { name: 'Log out of demo account' }))
+    expect(await screen.findByRole('heading', { name: 'Student Portal' })).toBeInTheDocument()
+    expect(sessionStorage.getItem(demoAuthConfig.sessionKey)).toBeNull()
   })
 
   it('offers the create assignment action and assignment list empty state', async () => {
+    startDemoSession()
     renderAt('/app/assignments')
 
     expect(await screen.findByRole('heading', { name: 'Your assignment list will appear here' })).toBeInTheDocument()
@@ -51,6 +92,8 @@ describe('student workspace routes', () => {
 describe('assignment setup workflow', () => {
   beforeEach(() => {
     localStorage.clear()
+    demoAuthService.logout()
+    startDemoSession()
     document.documentElement.classList.remove('dark')
   })
 

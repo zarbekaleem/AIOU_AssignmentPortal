@@ -8,12 +8,13 @@ import { StudentModulePlaceholder } from '@/app/routes/StudentModulePlaceholder'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import AssignmentsPage from '@/features/dashboard/pages/AssignmentsPage'
 import CreateAssignmentPage from '@/features/assignments/pages/CreateAssignmentPage'
+import { RequireDemoSession } from '@/app/routes/RequireDemoSession'
 
 export default function App() {
   return (
     <Routes>
       <Route path={siteConfig.routes.home} element={<LandingPage />} />
-      <Route path={siteConfig.routes.studentApp} element={<StudentLayout />}>
+      <Route path={siteConfig.routes.studentApp} element={<RequireDemoSession><StudentLayout /></RequireDemoSession>}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="assignments" element={<AssignmentsPage />} />
