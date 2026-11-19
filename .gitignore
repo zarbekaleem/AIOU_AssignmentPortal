@@ -1,0 +1,55 @@
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Node.js dependencies and frontend build output
+node_modules/
+frontend/dist/
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Python virtual environments and generated files
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+htmlcov/
+.coverage
+.coverage.*
+
+# Local databases and generated user files
+*.sqlite
+*.sqlite3
+*.db
+backend/storage/uploads/
+backend/storage/generated/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Editor and IDE state
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
